@@ -298,7 +298,7 @@ class PlayerActivity : BaseActivity() {
             this@PlayerActivity.decoderName = decoderName
         }
         override fun onBandwidthEstimate(eventTime: AnalyticsListener.EventTime, totalLoadTimeMs: Int, totalBytesLoaded: Long, bitrateEstimate: Long) {
-            Net.observe(bitrateEstimate)
+            NetMem.observe(bitrateEstimate)
         }
         override fun onDroppedVideoFrames(eventTime: AnalyticsListener.EventTime, droppedFrames: Int, elapsedMs: Long) {
             dropped += droppedFrames
@@ -373,7 +373,7 @@ class PlayerActivity : BaseActivity() {
     private fun stalled() {
         val now = mono()
         stalls.add(now); stallsHour.add(now); lastStallAt = now
-        Net.stall()
+        NetMem.stall()
         stalls.removeAll { now - it > 75_000 }
         if (stalls.size >= 3) { stalls.clear(); recover("stall", "3 blocchi in 75 s") }
     }

@@ -41,7 +41,7 @@ object Players {
         // memoria per il video: tetto basso sulle chiavette da 1 GB, così il sistema non chiude l'app
         // anteprima nella lista canali: pochi secondi di memoria, si guarda per qualche istante
         // rete lenta o blocchi recenti: più scorta prima di ripartire, così un calo di rete non ferma l'immagine
-        val slow = Net.slow()
+        val slow = NetMem.slow()
         val load = if (preview) DefaultLoadControl.Builder()
             .setBufferDurationsMs(2_000, 5_000, 800, 1_500)
             .setTargetBufferBytes(3 shl 20)
@@ -54,7 +54,7 @@ object Players {
                 if (live) (if (lite) 30_000 else 50_000) else (if (lite) 40_000 else 90_000),
                 // partenza rapida (1 s), ma dopo un blocco si riparte solo con una scorta vera: niente stop-and-go
                 1_000,
-                Net.rebufferMs(),
+                NetMem.rebufferMs(),
             )
             .setTargetBufferBytes((if (lite) 16 else if (live) 24 else 40) shl 20)
             .setPrioritizeTimeOverSizeThresholds(!lite)
@@ -67,7 +67,7 @@ object Players {
             MediaCodecUtil.getDecoderInfos(mime, secure, tunneling).sortedBy { if (it.softwareOnly) 0 else 1 }
         }
         // stima iniziale prudente sulle chiavette: i canali HLS con più qualità partono subito e poi salgono
-        val meter = DefaultBandwidthMeter.Builder(ctx).setInitialBitrateEstimate(Net.initialBitrate(lite)).build()
+        val meter = DefaultBandwidthMeter.Builder(ctx).setInitialBitrateEstimate(NetMem.initialBitrate(lite)).build()
         // qualità adattiva prudente (come Netflix): sale solo dopo 10 s stabili, scende subito se la rete cala,
         // usa il 70% della banda misurata per lasciare margine
         val abr = androidx.media3.exoplayer.trackselection.AdaptiveTrackSelection.Factory(
@@ -144,7 +144,7 @@ class KxRenderersFactory(private val ctx: Context) : DefaultRenderersFactory(ctx
  * Memoria della rete del dispositivo: banda misurata (media mobile) e blocchi recenti.
  * Ogni nuova riproduzione parte già dalla qualità e dalla scorta giuste per questa connessione.
  */
-object Net {
+object NetMem {
     private const val PREF = "net"
     @Volatile private var bw = -1L
     @Volatile private var stallAt = 0L
