@@ -46,6 +46,7 @@
         <TextView android:id="@+id/tabSeries" style="@style/Tab" android:text="Serie TV" />
         <TextView android:id="@+id/tabLive" style="@style/Tab" android:text="In diretta" />
         <TextView android:id="@+id/tabList" style="@style/Tab" android:text="La mia lista" />
+        <TextView android:id="@+id/tabCats" style="@style/Tab" android:text="Categorie" />
         <View android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="1" />
         <TextView
             android:id="@+id/clock"
@@ -87,4 +88,47 @@
         android:textColor="@color/text2"
         android:textSize="@dimen/text_s"
         android:visibility="gone" />
+    <!-- menu laterale delle categorie (SINISTRA sulla prima locandina o scheda «Categorie») -->
+    <View
+        android:id="@+id/drawerShade"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#99000000"
+        android:visibility="gone" />
+    <LinearLayout
+        android:id="@+id/drawer"
+        android:layout_width="340dp"
+        android:layout_height="match_parent"
+        android:background="@drawable/bg_drawer"
+        android:elevation="16dp"
+        android:orientation="vertical"
+        android:paddingLeft="@dimen/pad"
+        android:paddingTop="28dp"
+        android:paddingRight="16dp"
+        android:visibility="gone">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:letterSpacing="0.3"
+            android:text="CATEGORIE"
+            android:textColor="@color/accent"
+            android:textSize="@dimen/text_s"
+            android:textStyle="bold" />
+        <TextView
+            android:id="@+id/drawerTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:layout_marginBottom="12dp"
+            android:textColor="@color/text"
+            android:textSize="@dimen/title"
+            android:textStyle="bold" />
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/drawerList"
+            style="@style/List"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:paddingBottom="24dp" />
+    </LinearLayout>
 </FrameLayout>
