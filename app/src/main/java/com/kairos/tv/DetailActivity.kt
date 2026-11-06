@@ -130,6 +130,7 @@ class DetailActivity : BaseActivity() {
                     if (info == null || isFinishing) return@ui
                     val plot = info.optString("plot").ifEmpty { info.optString("description") }
                     if (plot.isNotEmpty()) findViewById<TextView>(R.id.plot).text = plot
+                    setCast(info)
                     meta(r.s("year").ifEmpty { info.optString("releasedate").take(4) }, info.optString("rating").ifEmpty { r.s("rating") }, info.optString("genre"), durText(info))
                     setBackdrop(first(info.opt("backdrop_path")).ifEmpty { info.optString("cover_big") })
                 }
@@ -165,6 +166,7 @@ class DetailActivity : BaseActivity() {
                     if (info != null) {
                         val plot = info.optString("plot")
                         if (plot.isNotEmpty()) findViewById<TextView>(R.id.plot).text = plot
+                        setCast(info)
                         meta(r.s("year").ifEmpty { info.optString("releaseDate").take(4) }, info.optString("rating").ifEmpty { r.s("rating") }, info.optString("genre"), "")
                         setBackdrop(first(info.opt("backdrop_path")))
                     }
@@ -184,6 +186,13 @@ class DetailActivity : BaseActivity() {
         if (secs > 0) return Ui.minutes(secs * 1000)
         val d = o.optString("duration")
         return if (d.length >= 5 && d[2] == ':') { val h = d.substring(0, 2).toIntOrNull() ?: 0; val m = d.substring(3, 5).toIntOrNull() ?: 0; Ui.minutes((h * 60L + m) * 60_000) } else ""
+    }
+
+    private fun setCast(info: JSONObject) {
+        val cast = info.optString("cast").ifEmpty { info.optString("actors") }.split(',').map { it.trim() }.filter { it.isNotEmpty() }.take(6).joinToString(", ")
+        val dir = info.optString("director").trim()
+        val t = listOfNotNull(cast.ifEmpty { null }?.let { "Cast: $it" }, dir.ifEmpty { null }?.let { "Regia: $it" }).joinToString("   ·   ")
+        findViewById<TextView>(R.id.cast).run { text = t; visibility = if (t.isEmpty()) View.GONE else View.VISIBLE }
     }
 
     private fun first(v: Any?): String = when (v) {
