@@ -333,7 +333,7 @@ open class BrowseActivity : BaseActivity() {
                 val h = HeroH(inf.inflate(R.layout.item_hero, p, false))
                 val sh = resources.displayMetrics.heightPixels
                 val sw = resources.displayMetrics.widthPixels
-                h.itemView.layoutParams.height = (sh * 0.56f).toInt()
+                h.itemView.layoutParams.height = (sh * 0.62f).toInt()
                 (h.img.layoutParams as ViewGroup.MarginLayoutParams).width = (sw * 0.66f).toInt()
                 for (b in listOf(h.play, h.info)) {
                     b.compoundDrawables[0]?.mutate()?.setColorFilter(Color.WHITE, PorterDuff.Mode.SRC_IN)
@@ -373,6 +373,12 @@ open class BrowseActivity : BaseActivity() {
     }
 
     private fun bindHero(h: HeroH) {
+
+        // copertina che si avvicina lentamente (effetto cinema), spento in modalità leggera
+
+        if (!App.lite) { h.img.animate().cancel(); h.img.scaleX = 1f; h.img.scaleY = 1f; h.img.pivotX = h.img.width.toFloat(); h.img.pivotY = 0f
+
+            h.img.animate().scaleX(1.07f).scaleY(1.07f).setDuration(14_000).setInterpolator(android.view.animation.LinearInterpolator()).start() }
         val c = hero
         if (c == null) {
             // niente titolo in evidenza (La mia lista, o liste non ancora caricate): solo lo spazio per le schede in alto

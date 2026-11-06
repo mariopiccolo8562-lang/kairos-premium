@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<selector xmlns:android="http://schemas.android.com/apk/res/android" android:enterFadeDuration="0" android:exitFadeDuration="0">
-    <item android:state_focused="true"><shape android:shape="rectangle"><solid android:color="#FFFFFFFF" /><corners android:radius="6dp" /></shape></item>
-    <item android:state_pressed="true"><shape android:shape="rectangle"><solid android:color="#FFFFFFFF" /><corners android:radius="6dp" /></shape></item>
-    <item><shape android:shape="rectangle"><solid android:color="#66808080" /><corners android:radius="6dp" /></shape></item>
+<!-- Kairos Premium: pulsante oro brillante quando è selezionato, vetro scuro con filo oro quando no -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android" android:enterFadeDuration="140" android:exitFadeDuration="140">
+    <item android:state_focused="true"><shape android:shape="rectangle"><gradient android:angle="270" android:startColor="#FFF5D77A" android:centerColor="#FFD4AF37" android:endColor="#FFA8801E" /><corners android:radius="10dp" /></shape></item>
+    <item android:state_pressed="true"><shape android:shape="rectangle"><gradient android:angle="270" android:startColor="#FFF5D77A" android:centerColor="#FFD4AF37" android:endColor="#FFA8801E" /><corners android:radius="10dp" /></shape></item>
+    <item><shape android:shape="rectangle"><solid android:color="#59141418" /><corners android:radius="10dp" /><stroke android:width="1dp" android:color="#80D4AF37" /></shape></item>
 </selector>
