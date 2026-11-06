@@ -222,7 +222,7 @@ class LiveActivity : BaseActivity() {
         val c = chAdapter.cursor ?: return
         if (c.isClosed || !c.moveToPosition(pos)) return
         curRow = Db.current(c)
-        stopVideo()
+        // l'anteprima già accesa resta nel riquadro mentre scorri: OK su un altro canale la cambia
         App.main.removeCallbacks(previewR)
         App.main.postDelayed(previewR, 180)
     }
@@ -251,7 +251,7 @@ class LiveActivity : BaseActivity() {
     private fun updatePreview() {
         val r = curRow ?: return
         val name = r.s("name")
-        if (previewId == 0L) idleHint()
+        if (previewId == 0L) idleHint() else hint(key() + if (r.l("_id") == previewId) " · schermo intero" else " · guarda questo canale")
         pch.text = (if (r.l("num") > 0) r.l("num").toString() + " · " else "") + name
         Ui.img(plogo, r.s("logo"), Ui.dp(this, 72), Ui.dp(this, 72))
         favBtn.setImageResource(if (favSet.contains(r.s("k"))) R.drawable.ic_heart_fill else R.drawable.ic_heart)
