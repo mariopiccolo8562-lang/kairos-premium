@@ -94,6 +94,11 @@ open class BrowseActivity : BaseActivity() {
 
     /* ---------------- schede in alto ---------------- */
     private fun tabs() {
+        findViewById<TextView>(R.id.tabCats).run {
+            visibility = if (kind == "list") View.GONE else View.VISIBLE
+            setOnClickListener { openDrawer(this) }
+            setOnKeyListener { _, code, e -> if (code == KeyEvent.KEYCODE_DPAD_DOWN && e.action == KeyEvent.ACTION_DOWN) { focusFirstVisible(); true } else false }
+        }
         val map = linkedMapOf(R.id.tabHome to "home", R.id.tabFilm to "vod", R.id.tabSeries to "series", R.id.tabLive to "live", R.id.tabList to "list")
         for ((id, k) in map) {
             val t = findViewById<TextView>(id)
@@ -277,6 +282,7 @@ open class BrowseActivity : BaseActivity() {
 
     /** in fondo alle righe INDIETRO riporta in cima; in cima chiude (la Home chiede conferma) */
     protected fun backToTop(): Boolean {
+        if (closeDrawer()) return true
         val lm = rows.layoutManager as? LinearLayoutManager ?: return false
         if (lm.findFirstVisibleItemPosition() <= 0 && !rows.canScrollVertically(-1)) return false
         rows.scrollToPosition(0)
@@ -457,6 +463,85 @@ open class BrowseActivity : BaseActivity() {
         setBg(m.backdrop.ifEmpty { c.img })
     }
 
+    /* ---------------- menu laterale delle categorie ---------------- */
+    private val drawer by lazy { findViewById<View>(R.id.drawer) }
+    private val drawerShade by lazy { findViewById<View>(R.id.drawerShade) }
+    private val drawerList by lazy { findViewById<RecyclerView>(R.id.drawerList) }
+    private var drawerBack: View? = null
+    private var drawerItems: List<Pair<String, Db.Cat>> = emptyList()
+
+    private fun openDrawer(from: View) {
+        if (kind == "list" || drawer.visibility == View.VISIBLE) return
+        drawerBack = from
+        val pls = K.activeIds()
+        val kids = K.kids
+        val tables = when (kind) { "vod" -> listOf("vod"); "series" -> listOf("series"); else -> listOf("vod", "series") }
+        findViewById<TextView>(R.id.drawerTitle).text = when (kind) { "vod" -> "Film"; "series" -> "Serie TV"; else -> "Film e Serie TV" }
+        bg {
+            val items = tables.flatMap { t -> Db.cats(t, pls, kids).map { t to it } }
+            ui {
+                if (isFinishing || items.isEmpty()) return@ui
+                drawerItems = items
+                if (drawerList.layoutManager == null) drawerList.layoutManager = LinearLayoutManager(this)
+                drawerList.adapter = DrawerAdapter()
+                drawer.visibility = View.VISIBLE
+                drawerShade.visibility = View.VISIBLE
+                if (!App.lite) {
+                    drawer.translationX = -Ui.dp(this, 340).toFloat()
+                    drawer.animate().translationX(0f).setDuration(260).setInterpolator(android.view.animation.DecelerateInterpolator(2f)).start()
+                    drawerShade.alpha = 0f
+                    drawerShade.animate().alpha(1f).setDuration(260).start()
+                }
+                drawerList.post { drawerList.layoutManager?.findViewByPosition(0)?.requestFocus() ?: drawerList.requestFocus() }
+            }
+        }
+    }
+
+    private fun closeDrawer(): Boolean {
+        if (drawer.visibility != View.VISIBLE) return false
+        if (App.lite) { drawer.visibility = View.GONE; drawerShade.visibility = View.GONE }
+        else {
+            drawer.animate().translationX(-drawer.width.toFloat()).setDuration(180).withEndAction { drawer.visibility = View.GONE }.start()
+            drawerShade.animate().alpha(0f).setDuration(180).withEndAction { drawerShade.visibility = View.GONE }.start()
+        }
+        (drawerBack?.takeIf { it.isAttachedToWindow } ?: findViewById(R.id.tabCats))?.requestFocus()
+        return true
+    }
+
+    private inner class DrawerAdapter : RecyclerView.Adapter<DrawerAdapter.H>() {
+        inner class H(v: View) : RecyclerView.ViewHolder(v) {
+            val name: TextView = v.findViewById(R.id.name)
+            val count: TextView = v.findViewById(R.id.count)
+        }
+
+        override fun getItemCount() = drawerItems.size
+
+        override fun onCreateViewHolder(p: ViewGroup, t: Int): H {
+            val h = H(LayoutInflater.from(p.context).inflate(R.layout.item_cat, p, false))
+            h.itemView.setOnClickListener {
+                val (table, c) = drawerItems.getOrNull(h.bindingAdapterPosition) ?: return@setOnClickListener
+                closeDrawer()
+                open(VodActivity::class.java) { putExtra("kind", table); putExtra("cat", c.id) }
+            }
+            h.itemView.setOnKeyListener { _, code, e ->
+                if (e.action != KeyEvent.ACTION_DOWN) false else when (code) {
+                    KeyEvent.KEYCODE_DPAD_RIGHT -> { closeDrawer(); true }
+                    KeyEvent.KEYCODE_DPAD_LEFT -> true
+                    KeyEvent.KEYCODE_DPAD_UP -> h.bindingAdapterPosition == 0
+                    KeyEvent.KEYCODE_DPAD_DOWN -> h.bindingAdapterPosition >= itemCount - 1
+                    else -> false
+                }
+            }
+            return h
+        }
+
+        override fun onBindViewHolder(h: H, i: Int) {
+            val (table, c) = drawerItems[i]
+            h.name.text = if (kind == "home") (if (table == "vod") "Film · " else "Serie · ") + c.name else c.name
+            h.count.text = if (c.count >= 0) Ui.num(c.count) else ""
+        }
+    }
+
     /* ---------------- locandine di una riga ---------------- */
     private inner class CardH(v: View) : RecyclerView.ViewHolder(v) {
         val img: ImageView = v.findViewById(R.id.img)
@@ -518,7 +603,7 @@ open class BrowseActivity : BaseActivity() {
                 when {
                     code == KeyEvent.KEYCODE_MENU && e.action == KeyEvent.ACTION_UP -> { h.card()?.let { toggleFav(it) }; true }
                     e.action == KeyEvent.ACTION_DOWN && code == KeyEvent.KEYCODE_DPAD_RIGHT -> h.bindingAdapterPosition >= itemCount - 1
-                    e.action == KeyEvent.ACTION_DOWN && code == KeyEvent.KEYCODE_DPAD_LEFT -> h.bindingAdapterPosition == 0
+                    e.action == KeyEvent.ACTION_DOWN && code == KeyEvent.KEYCODE_DPAD_LEFT -> if (h.bindingAdapterPosition == 0) { openDrawer(h.itemView); true } else false
                     e.action == KeyEvent.ACTION_DOWN && code == KeyEvent.KEYCODE_DPAD_UP -> upFromRow(h.itemView)
                     else -> false
                 }
