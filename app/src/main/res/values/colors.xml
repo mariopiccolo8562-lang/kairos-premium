@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Kairos Premium: nero profondo, oro e testo bianco -->
+<resources>
+    <color name="bg">#07070A</color>
+    <color name="surface">#14141A</color>
+    <color name="surface2">#1E1E26</color>
+    <color name="surface3">#2A2A34</color>
+    <color name="line">#2E2E38</color>
+    <color name="text">#FFFFFF</color>
+    <color name="text2">#ECEAE4</color>
+    <color name="muted">#B5B2A8</color>
+    <color name="dim">#86837A</color>
+    <color name="accent">#D4AF37</color>
+    <color name="on_accent">#0B0B0B</color>
+    <color name="on_accent_soft">#3A2E08</color>
+    <color name="live">#E50914</color>
+    <color name="overlay">#E607070A</color>
+    <color name="badge">#CC07070A</color>
+    <color name="gold_hi">#F5D77A</color>
+    <color name="gold_lo">#A8801E</color>
+</resources>
