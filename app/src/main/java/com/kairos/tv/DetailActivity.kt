@@ -45,6 +45,10 @@ class DetailActivity : BaseActivity() {
         favBtn = findViewById(R.id.fav)
         loading = findViewById(R.id.loading)
         findViewById<View>(R.id.posterBox).clipToOutline = true
+        if (!App.lite) findViewById<View>(R.id.content).run {
+            alpha = 0f; translationY = Ui.dp(context, 24).toFloat()
+            animate().alpha(1f).translationY(0f).setDuration(380).setInterpolator(android.view.animation.DecelerateInterpolator(2f)).start()
+        }
         findViewById<View>(R.id.back).setOnClickListener { finish() }
         findViewById<TextView>(R.id.kind).text = if (table == "series") "Serie TV" else "Film"
         favBtn.setOnClickListener {
@@ -107,6 +111,12 @@ class DetailActivity : BaseActivity() {
         val iv = findViewById<ImageView>(R.id.backdrop)
         val w = if (App.lite) 640 else 1280
         Ui.img(iv, url, w, w * 9 / 16)
+        if (App.lite) return
+        // la copertina compare in dissolvenza e si avvicina piano, come al cinema
+        iv.animate().cancel()
+        iv.alpha = 0f; iv.scaleX = 1f; iv.scaleY = 1f
+        iv.animate().alpha(0.8f).setStartDelay(120).setDuration(700).start()
+        iv.postDelayed({ if (!isFinishing) iv.animate().scaleX(1.06f).scaleY(1.06f).setStartDelay(0).setDuration(16_000).setInterpolator(android.view.animation.LinearInterpolator()).start() }, 820)
     }
 
     /* ---------------- dati dal server ---------------- */

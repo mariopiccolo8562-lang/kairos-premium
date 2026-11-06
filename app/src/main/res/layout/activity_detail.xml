@@ -8,15 +8,25 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_gravity="top|right"
-        android:alpha="0.55"
+        android:alpha="0.8"
         android:scaleType="centerCrop" />
     <View
         android:id="@+id/shade"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#B30C0E13" />
+        android:background="#4D07070A" />
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/fade_left" />
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="260dp"
+        android:layout_gravity="bottom"
+        android:background="@drawable/fade_bottom" />
 
     <LinearLayout
+        android:id="@+id/content"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
@@ -36,7 +46,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="14dp"
-                android:textColor="@color/muted"
+                android:letterSpacing="0.3"
+                android:textColor="@color/accent"
                 android:textSize="@dimen/text_m"
                 android:textStyle="bold" />
         </LinearLayout>
@@ -51,7 +62,8 @@
                 android:id="@+id/posterBox"
                 android:layout_width="@dimen/poster_w"
                 android:layout_height="@dimen/poster_h"
-                android:background="@drawable/bg_ph">
+                android:background="@drawable/bg_ph"
+                android:elevation="14dp">
                 <ImageView
                     android:id="@+id/poster"
                     android:layout_width="match_parent"
