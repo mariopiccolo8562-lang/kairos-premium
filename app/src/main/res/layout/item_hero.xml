@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- riquadro grande: un titolo in evidenza, fisso (non cambia a ogni locandina: niente lavoro mentre scorri) -->
+<!-- riquadro grande: testi del titolo selezionato (la copertina è a tutto schermo dietro le righe) -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="360dp">
@@ -49,14 +49,35 @@
             android:textColor="@color/text"
             android:textSize="@dimen/hero"
             android:textStyle="bold" />
-        <TextView
-            android:id="@+id/meta"
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:textColor="@color/text2"
-            android:textSize="@dimen/text_m"
-            android:textStyle="bold" />
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+            <TextView
+                android:id="@+id/age"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="10dp"
+                android:background="@drawable/bg_age"
+                android:paddingLeft="6dp"
+                android:paddingRight="6dp"
+                android:textColor="@color/text"
+                android:textSize="@dimen/text_s"
+                android:textStyle="bold"
+                android:visibility="gone" />
+            <TextView
+                android:id="@+id/meta"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxWidth="620dp"
+                android:singleLine="true"
+                android:textColor="@color/text2"
+                android:textSize="@dimen/text_m"
+                android:textStyle="bold" />
+        </LinearLayout>
         <TextView
             android:id="@+id/plot"
             android:layout_width="wrap_content"
@@ -67,6 +88,17 @@
             android:maxWidth="520dp"
             android:textColor="@color/text2"
             android:textSize="@dimen/text_m" />
+        <TextView
+            android:id="@+id/cast"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:ellipsize="end"
+            android:maxWidth="560dp"
+            android:singleLine="true"
+            android:textColor="@color/muted"
+            android:textSize="@dimen/text_s"
+            android:visibility="gone" />
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

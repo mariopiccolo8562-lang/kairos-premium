@@ -312,6 +312,8 @@ open class BrowseActivity : BaseActivity() {
         val kindT: TextView = v.findViewById(R.id.kind)
         val title: TextView = v.findViewById(R.id.title)
         val metaT: TextView = v.findViewById(R.id.meta)
+        val age: TextView = v.findViewById(R.id.age)
+        val cast: TextView = v.findViewById(R.id.cast)
         val plot: TextView = v.findViewById(R.id.plot)
         val play: TextView = v.findViewById(R.id.play)
         val info: TextView = v.findViewById(R.id.info)
@@ -418,7 +420,7 @@ open class BrowseActivity : BaseActivity() {
         if (c == null) {
             // niente titolo in evidenza (La mia lista, o liste non ancora caricate): solo lo spazio per le schede in alto
             h.itemView.layoutParams.height = Ui.dp(this, 6)
-            for (v in listOf(h.img, h.kindT, h.title, h.metaT, h.plot, h.play, h.info)) v.visibility = View.GONE
+            for (v in listOf(h.img, h.kindT, h.title, h.metaT, h.plot, h.play, h.info, h.age, h.cast)) v.visibility = View.GONE
             setBg(null)
             return
         }
@@ -430,8 +432,29 @@ open class BrowseActivity : BaseActivity() {
         h.plot.text = c.plot
         h.plot.visibility = if (c.plot.isBlank()) View.GONE else View.VISIBLE
         h.play.text = if (c.table == "series") "Guarda" else "Riproduci"
+        h.age.visibility = View.GONE
+        h.cast.visibility = View.GONE
         if (!App.lite) for (v in listOf(h.title, h.metaT, h.plot)) { v.alpha = 0f; v.animate().alpha(1f).setDuration(320).start() }
-        setBg(c.img)
+        val m = Meta.cached(c)
+        if (m != null) { applyMeta(h, c, m); return }
+        // copertina orizzontale, generi e cast dal pannello; se tardano resta la locandina
+        App.main.postDelayed({ if (hero === c && Meta.cached(c) == null) setBg(c.img) }, 1200)
+        Meta.get(c) { info ->
+            if (isFinishing || hero !== c) return@get
+            val hh = heroH?.takeIf { it.bindingAdapterPosition != RecyclerView.NO_POSITION }
+            if (info == null) setBg(c.img) else if (hh != null) applyMeta(hh, c, info) else setBg(info.backdrop.ifEmpty { c.img })
+        }
+    }
+
+    private fun applyMeta(h: HeroH, c: Db.Card, m: Meta.Info) {
+        val r = m.rating.ifEmpty { c.rating }.toDoubleOrNull()?.takeIf { it > 0 }?.let { "★ " + String.format(java.util.Locale.ITALY, "%.1f", if (it > 10) it / 10 else it) }
+        h.metaT.text = listOfNotNull(c.year.ifEmpty { m.year }.ifEmpty { null }, m.genre.ifEmpty { null }, m.dur.ifEmpty { null }, r).joinToString("  •  ")
+        if (m.plot.isNotEmpty()) { h.plot.text = m.plot; h.plot.visibility = View.VISIBLE }
+        h.age.text = m.age
+        h.age.visibility = if (m.age.isEmpty()) View.GONE else View.VISIBLE
+        h.cast.text = "Con " + m.cast
+        h.cast.visibility = if (m.cast.isEmpty()) View.GONE else View.VISIBLE
+        setBg(m.backdrop.ifEmpty { c.img })
     }
 
     /* ---------------- locandine di una riga ---------------- */
