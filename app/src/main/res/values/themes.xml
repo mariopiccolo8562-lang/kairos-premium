@@ -105,4 +105,19 @@
         <item name="android:focusable">true</item>
         <item name="android:singleLine">true</item>
     </style>
+    <style name="NewBadge">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">18dp</item>
+        <item name="android:layout_gravity">bottom|center_horizontal</item>
+        <item name="android:layout_marginBottom">8dp</item>
+        <item name="android:background">@drawable/bg_badge_new</item>
+        <item name="android:gravity">center</item>
+        <item name="android:paddingLeft">7dp</item>
+        <item name="android:paddingRight">7dp</item>
+        <item name="android:letterSpacing">0.08</item>
+        <item name="android:textColor">#FF0B0B0B</item>
+        <item name="android:textSize">10sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:visibility">gone</item>
+    </style>
 </resources>
