@@ -373,11 +373,8 @@ open class BrowseActivity : BaseActivity() {
     }
 
     private fun bindHero(h: HeroH) {
-
         // copertina che si avvicina lentamente (effetto cinema), spento in modalità leggera
-
         if (!App.lite) { h.img.animate().cancel(); h.img.scaleX = 1f; h.img.scaleY = 1f; h.img.pivotX = h.img.width.toFloat(); h.img.pivotY = 0f
-
             h.img.animate().scaleX(1.07f).scaleY(1.07f).setDuration(14_000).setInterpolator(android.view.animation.LinearInterpolator()).start() }
         val c = hero
         if (c == null) {
