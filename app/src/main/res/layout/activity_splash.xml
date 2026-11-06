@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- avvio: logo oro animato -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FF07070A">
+    <View
+        android:id="@+id/glow"
+        android:layout_width="460dp"
+        android:layout_height="460dp"
+        android:layout_gravity="center"
+        android:alpha="0"
+        android:background="@drawable/bg_glow" />
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:gravity="center_horizontal"
+        android:orientation="vertical">
+        <FrameLayout
+            android:id="@+id/logoBox"
+            android:layout_width="170dp"
+            android:layout_height="170dp"
+            android:alpha="0">
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="fitCenter"
+                android:src="@drawable/splash_logo" />
+            <View
+                android:id="@+id/shine"
+                android:layout_width="60dp"
+                android:layout_height="match_parent"
+                android:background="@drawable/shine"
+                android:rotation="18"
+                android:scaleY="1.6"
+                android:visibility="invisible" />
+        </FrameLayout>
+        <TextView
+            android:id="@+id/brand"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:alpha="0"
+            android:letterSpacing="0.15"
+            android:text="KAIROS"
+            android:textColor="#FFF5D77A"
+            android:textSize="30sp"
+            android:textStyle="bold" />
+        <TextView
+            android:id="@+id/sub"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:alpha="0"
+            android:letterSpacing="0.6"
+            android:text="PREMIUM"
+            android:textColor="#B3D4AF37"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+</FrameLayout>

@@ -4,6 +4,22 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/bg">
+    <!-- copertina a tutto schermo del titolo selezionato (cambia mentre scorri) -->
+    <ImageView
+        android:id="@+id/bgImg"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="right|top"
+        android:scaleType="centerCrop" />
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/fade_left" />
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="bottom"
+        android:background="@drawable/fade_bottom" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rows"

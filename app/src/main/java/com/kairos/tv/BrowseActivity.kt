@@ -48,6 +48,7 @@ open class BrowseActivity : BaseActivity() {
         var loading = false
         var more = false
         var count = 0
+        var top = false
     }
 
     companion object {
@@ -58,6 +59,7 @@ open class BrowseActivity : BaseActivity() {
         private const val V_CARD = 10
         private const val V_MORE = 11
         private const val V_RECENT = 12
+        private const val V_TOP = 13
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -122,6 +124,7 @@ open class BrowseActivity : BaseActivity() {
     }
 
     override fun onDestroy() {
+        App.main.removeCallbacks(heroR)
         super.onDestroy()
         Sync.unlisten(syncL)
     }
@@ -180,6 +183,7 @@ open class BrowseActivity : BaseActivity() {
                 if (Store.favs(t).isNotEmpty() || k == "list") list.add(Row("fav$t", if (tables.size > 1) "La mia lista · $name" else "La mia lista", T_POSTERS, t, Db.FAV))
             }
             if (k != "list") {
+                tables.firstOrNull()?.let { t -> list.add(Row("top$t", if (t == "vod") "Top 10 · Film più nuovi" else "Top 10 · Serie più nuove", T_POSTERS, t, Db.NEW).also { it.top = true }) }
                 for (t in tables) list.add(Row("new$t", if (t == "vod") "Film aggiunti di recente" else "Serie TV aggiunte di recente", T_POSTERS, t, Db.NEW))
                 for (t in tables) {
                     val cats = Db.cats(t, pls, kids)
@@ -372,35 +376,70 @@ open class BrowseActivity : BaseActivity() {
         }
     }
 
+    private var heroH: HeroH? = null
+    private var pendingHero: Db.Card? = null
+    private var bgUrl: String? = null
+    private val bgImg by lazy { findViewById<ImageView>(R.id.bgImg) }
+    private val heroR = Runnable {
+        val c = pendingHero ?: return@Runnable
+        if (isFinishing || c === hero) return@Runnable
+        hero = c
+        heroH?.let { if (it.bindingAdapterPosition != RecyclerView.NO_POSITION) bindHero(it) else setBg(c.img) } ?: setBg(c.img)
+    }
+
+    /** il titolo selezionato diventa la copertina grande, dopo una breve pausa (scorrendo veloce non carica niente) */
+    private fun focusCard(c: Db.Card) {
+        pendingHero = c
+        App.main.removeCallbacks(heroR)
+        App.main.postDelayed(heroR, if (App.lite) 650L else 380L)
+    }
+
+    private fun setBg(url: String?) {
+        if (url == bgUrl) return
+        bgUrl = url
+        val iv = bgImg ?: return
+        val sw = resources.displayMetrics.widthPixels
+        val sh = resources.displayMetrics.heightPixels
+        if (App.max || url.isNullOrEmpty()) { Ui.img(iv, null, 0, 0); return }
+        if (App.lite) { Ui.img(iv, url, sw / 3, sh / 3); return }
+        iv.animate().cancel()
+        iv.alpha = 0f; iv.scaleX = 1f; iv.scaleY = 1f; iv.pivotX = sw.toFloat(); iv.pivotY = 0f
+        Ui.img(iv, url, sw / 2, sh / 2)
+        iv.animate().alpha(1f).setDuration(450).withEndAction {
+            iv.animate().scaleX(1.06f).scaleY(1.06f).setDuration(14_000).setInterpolator(android.view.animation.LinearInterpolator()).start()
+        }.start()
+    }
+
     private fun bindHero(h: HeroH) {
-        // copertina che si avvicina lentamente (effetto cinema), spento in modalità leggera
-        if (!App.lite) { h.img.animate().cancel(); h.img.scaleX = 1f; h.img.scaleY = 1f; h.img.pivotX = h.img.width.toFloat(); h.img.pivotY = 0f
-            h.img.animate().scaleX(1.07f).scaleY(1.07f).setDuration(14_000).setInterpolator(android.view.animation.LinearInterpolator()).start() }
+        heroH = h
+        h.img.visibility = View.GONE
+        h.itemView.findViewById<View>(R.id.fadeL)?.visibility = View.GONE
         val c = hero
         if (c == null) {
             // niente titolo in evidenza (La mia lista, o liste non ancora caricate): solo lo spazio per le schede in alto
             h.itemView.layoutParams.height = Ui.dp(this, 6)
             for (v in listOf(h.img, h.kindT, h.title, h.metaT, h.plot, h.play, h.info)) v.visibility = View.GONE
+            setBg(null)
             return
         }
         h.itemView.layoutParams.height = (resources.displayMetrics.heightPixels * 0.56f).toInt()
-        for (v in listOf(h.img, h.kindT, h.title, h.metaT, h.play, h.info)) v.visibility = View.VISIBLE
+        for (v in listOf(h.kindT, h.title, h.metaT, h.play, h.info)) v.visibility = View.VISIBLE
         h.kindT.text = if (c.table == "series") "SERIE TV" else "FILM"
         h.title.text = c.name
         h.metaT.text = meta(c)
         h.plot.text = c.plot
         h.plot.visibility = if (c.plot.isBlank()) View.GONE else View.VISIBLE
         h.play.text = if (c.table == "series") "Guarda" else "Riproduci"
-        val w = h.img.layoutParams.width.coerceAtLeast(1)
-        val ht = h.itemView.layoutParams.height.coerceAtLeast(1)
-        // una sola immagine grande, caricata una volta; più piccola sulle chiavette lente
-        if (App.lite) Ui.img(h.img, c.img, w / 2, ht / 2) else Ui.img(h.img, c.img, w, ht)
+        if (!App.lite) for (v in listOf(h.title, h.metaT, h.plot)) { v.alpha = 0f; v.animate().alpha(1f).setDuration(320).start() }
+        setBg(c.img)
     }
 
     /* ---------------- locandine di una riga ---------------- */
     private inner class CardH(v: View) : RecyclerView.ViewHolder(v) {
         val img: ImageView = v.findViewById(R.id.img)
         val ph: TextView = v.findViewById(R.id.ph)
+        val rank: TextView? = v.findViewById(R.id.rank)
+        val badge: TextView? = v.findViewById(R.id.badge)
     }
 
     private inner class RecentH(v: View) : RecyclerView.ViewHolder(v) {
@@ -418,12 +457,13 @@ open class BrowseActivity : BaseActivity() {
             val r = row ?: return 0
             if (r.type == T_RECENT) return r.recent.size
             val n = r.cards?.size ?: 0
+            if (r.top) return n.coerceAtMost(10)
             return n + if (r.more && n > 0) 1 else 0
         }
 
         override fun getItemViewType(i: Int): Int {
             val r = row ?: return V_CARD
-            return if (r.type == T_RECENT) V_RECENT else if (i >= (r.cards?.size ?: 0)) V_MORE else V_CARD
+            return if (r.type == T_RECENT) V_RECENT else if (i >= (r.cards?.size ?: 0)) V_MORE else if (r.top) V_TOP else V_CARD
         }
 
         override fun onCreateViewHolder(p: ViewGroup, t: Int): RecyclerView.ViewHolder {
@@ -439,8 +479,10 @@ open class BrowseActivity : BaseActivity() {
                 Ui.zoom(h.itemView, 1.06f)
                 return h
             }
-            val h = CardH(inf.inflate(R.layout.item_card, p, false))
+            val h = CardH(inf.inflate(if (t == V_TOP) R.layout.item_top else R.layout.item_card, p, false))
             h.itemView.findViewById<View>(R.id.box).clipToOutline = true
+            h.rank?.paint?.let { it.style = android.graphics.Paint.Style.STROKE; it.strokeWidth = Ui.dp(p.context, 3).toFloat() }
+            h.itemView.setOnFocusChangeListener { _, has -> if (has) h.card()?.let { focusCard(it) } }
             h.itemView.setOnClickListener {
                 val r = row ?: return@setOnClickListener
                 val i = h.bindingAdapterPosition
@@ -488,6 +530,11 @@ open class BrowseActivity : BaseActivity() {
                     }
                     val c = cards[i]
                     h.ph.text = c.name
+                    h.rank?.text = (i + 1).toString()
+                    h.badge?.let { b ->
+                        b.visibility = if (r.cat == Db.NEW) View.VISIBLE else View.GONE
+                        b.text = if (c.table == "series") "NUOVA SERIE" else "NUOVO FILM"
+                    }
                     if (App.max) Ui.img(h.img, c.img, posterW * 2 / 3, posterH * 2 / 3) else Ui.img(h.img, c.img, posterW, posterH)
                 }
             }
