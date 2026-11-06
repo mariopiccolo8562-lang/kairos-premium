@@ -2,6 +2,7 @@ package com.kairos.tv
 
 import android.app.Activity
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.View
@@ -275,6 +276,7 @@ class PlayerActivity : BaseActivity() {
         App.main.removeCallbacks(tuneR)
         App.main.removeCallbacks(zapR)
         App.main.removeCallbacks(retryR)
+        App.main.removeCallbacks(warmR)
         sendEvents()
     }
 
@@ -327,6 +329,7 @@ class PlayerActivity : BaseActivity() {
                     firstReady = true
                     reconnects = 0
                     bufferingSince = 0L
+                    if (live) { App.main.removeCallbacks(warmR); App.main.postDelayed(warmR, 4_000) }
                 }
                 Player.STATE_ENDED -> {
                     bufferingSince = 0L
@@ -732,6 +735,24 @@ class PlayerActivity : BaseActivity() {
                 info.text = list.getOrNull(1)?.let { "Dopo · " + Ui.hm(it.start) + "  " + it.title } ?: ""
                 updateTime()
                 if (now != null) Pulse.watch(Pulse.Watch("live", now.title, r.s("name"), r.s("k"), "", r.s("pl")))
+            }
+        }
+    }
+
+    /**
+     * Canale successivo e precedente pronti: indirizzo del server già risolto e logo già in memoria.
+     * Il flusso non si apre in anticipo: molti pannelli permettono una sola connessione e chiuderebbero quella in corso.
+     */
+    private val warmR = Runnable { prewarm() }
+    private fun prewarm() {
+        if (isFinishing || ids.size < 2) return
+        val near = listOf(ids[(idx + 1).mod(ids.size)], ids[(idx - 1).mod(ids.size)]).distinct()
+        bg {
+            for (id in near) {
+                val r = Db.one("live", id) ?: continue
+                Play.liveUrls(r).firstOrNull()?.let { u -> try { java.net.InetAddress.getAllByName(Uri.parse(u).host) } catch (_: Exception) {} }
+                val logo = r.s("logo")
+                if (logo.isNotEmpty() && !App.lite) ui { if (!isFinishing && !isDestroyed) try { com.bumptech.glide.Glide.with(this).load(logo).preload(Ui.dp(this, 38), Ui.dp(this, 38)) } catch (_: Exception) {} }
             }
         }
     }

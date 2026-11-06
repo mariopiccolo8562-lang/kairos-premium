@@ -35,9 +35,10 @@ jobs:
           if [ -n "$KS_B64" ]; then
             echo "$KS_B64" | base64 -d > "$RUNNER_TEMP/release.jks"
             echo "KS_PATH=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
+            echo "SIGNED=1" >> "$GITHUB_ENV"
           elif [[ "$GITHUB_REF" == refs/tags/v* ]]; then
-            echo "::error::Mancano i segreti della chiave di firma (vedi README): senza, gli aggiornamenti non si installerebbero sopra la versione precedente"
-            exit 1
+            # senza i segreti la release non si pubblica da qui (va firmata a mano con la chiave di Kairos Premium)
+            echo "::warning::Mancano i segreti della chiave di firma: solo APK di prova, release non pubblicata"
           else
             echo "::warning::Nessuna chiave di firma: APK di prova firmato con una chiave temporanea"
           fi
@@ -71,7 +72,7 @@ jobs:
           path: kairos-premium.apk
 
       - name: File per l'aggiornamento automatico
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: startsWith(github.ref, 'refs/tags/v') && env.SIGNED == '1'
         run: |
           URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/${GITHUB_REF_NAME}/kairos-premium.apk"
           jq -n --arg v "$VERSION_NAME" --argjson c "$VERSION_CODE" --arg u "$URL" --arg d "$(date -u +%FT%TZ)" \
@@ -79,7 +80,7 @@ jobs:
           cat kairos-premium.json
 
       - name: Pubblica la release
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: startsWith(github.ref, 'refs/tags/v') && env.SIGNED == '1'
         uses: softprops/action-gh-release@v2
         with:
           files: |
