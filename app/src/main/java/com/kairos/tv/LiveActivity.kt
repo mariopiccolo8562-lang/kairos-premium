@@ -120,9 +120,10 @@ class LiveActivity : BaseActivity() {
         super.onResume()
         favSet = Store.favs("live")
         chAdapter.notifyDataSetChanged()
+        if (!isFinishing) onStateChanged() // di ritorno: ordine delle categorie cambiato dal pannello nel frattempo
     }
 
-    private fun sig() = K.activeIds().joinToString(",") + "|" + K.kids
+    private fun sig() = K.activeIds().joinToString(",") + "|" + K.kids + "|" + HomeCfg.sig()
 
     override fun onPause() {
         super.onPause()
@@ -154,7 +155,8 @@ class LiveActivity : BaseActivity() {
             val total = Db.count("live", pls, kids)
             ui {
                 if (isFinishing) return@ui
-                val all = fixedCats(this, "live", total, favs.size) + list
+                // dal pannello: categorie in primo piano per prime, quelle nascoste dalla Home in fondo (vedi HomeCfg)
+                val all = fixedCats(this, "live", total, favs.size) + HomeCfg.order(list)
                 var idx = all.indexOfFirst { it.id == curCat }
                 if (idx < 0) { idx = 0; curCat = Db.ALL }
                 catAdapter.set(all, idx)
