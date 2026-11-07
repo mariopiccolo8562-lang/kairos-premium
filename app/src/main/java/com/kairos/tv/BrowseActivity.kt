@@ -137,6 +137,27 @@ open class BrowseActivity : BaseActivity() {
         Sync.unlisten(syncL)
     }
 
+    /** sfondo grande liberato per il lettore: torna appena la schermata si rivede (senza rifare la dissolvenza) */
+    private var bgFreed: String? = null
+
+    override fun releaseBig() {
+        val url = bgUrl ?: return
+        val iv = bgImg ?: return
+        Ui.release(iv)
+        bgFreed = url
+    }
+
+    override fun onStart() {
+        super.onStart()
+        val url = bgFreed ?: return
+        bgFreed = null
+        if (url != bgUrl) return // nel frattempo è arrivato un altro titolo in evidenza
+        val iv = bgImg ?: return
+        val sw = resources.displayMetrics.widthPixels
+        val sh = resources.displayMetrics.heightPixels
+        if (App.lite) Ui.img(iv, url, sw / 3, sh / 3) else Ui.img(iv, url, sw / 2, sh / 2)
+    }
+
     override fun onStateChanged() {
         fillAccount()
         if (sig() != loadedSig) build()

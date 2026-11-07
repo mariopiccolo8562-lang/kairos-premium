@@ -108,15 +108,34 @@ class DetailActivity : BaseActivity() {
     private fun setBackdrop(url: String) {
         if (url.isEmpty() || url == backdrop || App.max) return // «Leggerissima»: basta la locandina
         backdrop = url
-        val iv = findViewById<ImageView>(R.id.backdrop)
-        val w = if (App.lite) 640 else 1280
-        Ui.img(iv, url, w, w * 9 / 16)
+        val iv = loadBackdrop()
         if (App.lite) return
         // la copertina compare in dissolvenza e si avvicina piano, come al cinema
         iv.animate().cancel()
         iv.alpha = 0f; iv.scaleX = 1f; iv.scaleY = 1f
         iv.animate().alpha(0.8f).setStartDelay(120).setDuration(700).start()
         iv.postDelayed({ if (!isFinishing) iv.animate().scaleX(1.06f).scaleY(1.06f).setStartDelay(0).setDuration(16_000).setInterpolator(android.view.animation.LinearInterpolator()).start() }, 820)
+    }
+
+    private fun loadBackdrop(): ImageView {
+        val iv = findViewById<ImageView>(R.id.backdrop)
+        val w = if (App.lite) 640 else 1280
+        Ui.img(iv, backdrop, w, w * 9 / 16)
+        return iv
+    }
+
+    /** sfondo liberato per il lettore: torna appena la scheda si rivede (senza rifare la dissolvenza) */
+    private var backFreed = false
+
+    override fun releaseBig() {
+        if (backdrop.isEmpty()) return
+        Ui.release(findViewById(R.id.backdrop))
+        backFreed = true
+    }
+
+    override fun onStart() {
+        super.onStart()
+        if (backFreed) { backFreed = false; loadBackdrop() }
     }
 
     /* ---------------- dati dal server ---------------- */
