@@ -16,6 +16,15 @@ class SplashActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         if (!isTaskRoot) { finish(); return } // app già aperta: torna dove eri
+        // mentre il logo si anima, in sottofondo si contano le categorie della Home (restano in memoria): la Home compare prima
+        bg {
+            val s = Panel.state ?: Panel.loadCached()
+            if (s != null && s.active) {
+                val pls = K.activeIds()
+                val kids = K.kids
+                for (t in listOf("vod", "series")) Db.cats(t, pls, kids)
+            }
+        }
         setContentView(R.layout.activity_splash)
         val glow = findViewById<View>(R.id.glow)
         val logo = findViewById<View>(R.id.logoBox)
