@@ -155,8 +155,12 @@ open class BrowseActivity : BaseActivity() {
         val iv = bgImg ?: return
         val sw = resources.displayMetrics.widthPixels
         val sh = resources.displayMetrics.heightPixels
-        if (App.lite) Ui.img(iv, url, sw / 3, sh / 3) else Ui.img(iv, url, sw / 2, sh / 2)
+        val d = bgDiv()
+        Ui.img(iv, url, sw / d, sh / d)
     }
+
+    /** misura dello sfondo grande: metà schermo, un terzo in modalità leggera, un quarto in «Leggerissima» */
+    private fun bgDiv(): Int = if (App.max) 4 else if (App.lite) 3 else 2
 
     override fun onStateChanged() {
         fillAccount()
@@ -465,8 +469,9 @@ open class BrowseActivity : BaseActivity() {
         val iv = bgImg ?: return
         val sw = resources.displayMetrics.widthPixels
         val sh = resources.displayMetrics.heightPixels
-        if (App.max || url.isNullOrEmpty()) { Ui.img(iv, null, 0, 0); return }
-        if (App.lite) { Ui.img(iv, url, sw / 3, sh / 3); return }
+        if (url.isNullOrEmpty()) { Ui.img(iv, null, 0, 0); return }
+        // l'anteprima c'è in ogni modalità: più piccola in modalità leggera e «Leggerissima» (senza dissolvenza), mai tolta
+        if (App.lite) { val d = bgDiv(); Ui.img(iv, url, sw / d, sh / d); return }
         iv.animate().cancel()
         iv.alpha = 0f; iv.scaleX = 1f; iv.scaleY = 1f; iv.pivotX = sw.toFloat(); iv.pivotY = 0f
         Ui.img(iv, url, sw / 2, sh / 2)

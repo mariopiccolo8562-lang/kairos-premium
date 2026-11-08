@@ -107,7 +107,7 @@ class DetailActivity : BaseActivity() {
     }
 
     private fun setBackdrop(url: String) {
-        if (url.isEmpty() || url == backdrop || App.max) return // «Leggerissima»: basta la locandina
+        if (url.isEmpty() || url == backdrop) return
         backdrop = url
         val iv = loadBackdrop()
         if (App.lite) return
@@ -118,9 +118,10 @@ class DetailActivity : BaseActivity() {
         iv.postDelayed({ if (!isFinishing) iv.animate().scaleX(1.06f).scaleY(1.06f).setStartDelay(0).setDuration(16_000).setInterpolator(android.view.animation.LinearInterpolator()).start() }, 820)
     }
 
+    /** l'immagine di anteprima c'è in ogni modalità: più piccola in modalità leggera e «Leggerissima», mai tolta */
     private fun loadBackdrop(): ImageView {
         val iv = findViewById<ImageView>(R.id.backdrop)
-        val w = if (App.lite) 640 else 1280
+        val w = if (App.max) 480 else if (App.lite) 640 else 1280
         Ui.img(iv, backdrop, w, w * 9 / 16)
         return iv
     }
