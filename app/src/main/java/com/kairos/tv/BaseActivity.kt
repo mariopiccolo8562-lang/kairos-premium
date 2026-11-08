@@ -34,6 +34,7 @@ abstract class BaseActivity : Activity() {
         if (needsActive) {
             val s = Panel.state ?: Panel.loadCached()
             if (s == null || !s.active) { goActivation(); return }
+            if (checkProfile()) return
             Vpns.apply(this)
         }
         if (clockView != null) { App.main.removeCallbacks(clockTick); clockTick.run() }
@@ -68,6 +69,17 @@ abstract class BaseActivity : Activity() {
 
     /** è comparsa la finestra dell'aggiornamento obbligatorio: niente video dietro di lei */
     open fun onBlocked() {}
+
+    /**
+     * Profilo in uso tolto dal pannello (o profili appena creati e nessuno scelto): si torna a «Chi guarda?», come
+     * all'apertura dell'app. Mai sopra la visione: il lettore lo lascia ai menu, che lo controllano al ritorno.
+     */
+    fun checkProfile(): Boolean {
+        if (!needsActive || this is PlayerActivity || this is ProfilesActivity || isFinishing || !K.needsProfile()) return false
+        startActivity(Intent(this, ProfilesActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
+        finish()
+        return true
+    }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
