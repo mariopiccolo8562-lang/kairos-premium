@@ -337,7 +337,7 @@ class PlayerActivity : BaseActivity() {
         App.main.removeCallbacks(tuneR)
         player?.stop()
         Pulse.watch(null)
-        Ui.dialog(this, "Visione interrotta", "Il tuo fornitore ha chiuso la visione su questo dispositivo.") { finish() }
+        finish() // «Disconnetti» dal pannello: il lettore si chiude, senza avvisi al cliente
     }
 
     /* ---------------- eventi del lettore ---------------- */

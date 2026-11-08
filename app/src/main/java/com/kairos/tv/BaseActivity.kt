@@ -104,10 +104,8 @@ abstract class BaseActivity : Activity() {
         finish()
     }
 
-    /** il fornitore ha premuto «Disconnetti» nel pannello */
-    open fun onKicked() {
-        Ui.dialog(this, "Visione interrotta", "Il tuo fornitore ha chiuso la visione su questo dispositivo.")
-    }
+    /** «Disconnetti» dal pannello: nei menu non c'è niente da chiudere (l'anteprima la ferma [LiveActivity]); nessun avviso al cliente */
+    open fun onKicked() {}
 
     /** lo stato dal pannello è cambiato (playlist, permessi, messaggi…) */
     open fun onStateChanged() {}

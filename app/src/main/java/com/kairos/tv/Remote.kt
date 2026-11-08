@@ -43,7 +43,7 @@ object Remote {
     /** permesso di Android «Installa app sconosciute» (serve per installare gli aggiornamenti): nessuna app può darselo da sola */
     fun canInstall(): Boolean = Build.VERSION.SDK_INT < 26 || App.I.packageManager.canRequestPackageInstalls()
     fun openInstallPerm() {
-        Ui.toast("Attiva «Consenti da questa fonte», poi premi INDIETRO")
+        Ui.toast("Attiva «Consenti da questa fonte» per gli aggiornamenti dell'app, poi premi INDIETRO")
         val tries = listOf(Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:" + App.I.packageName)), Intent(Settings.ACTION_SECURITY_SETTINGS), Intent(Settings.ACTION_SETTINGS))
         for (i in tries) { try { App.I.startActivity(i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)); return } catch (_: Exception) {} }
     }
