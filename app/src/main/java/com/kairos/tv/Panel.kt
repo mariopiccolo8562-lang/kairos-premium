@@ -184,7 +184,9 @@ object Panel {
     }
 
     fun register(): State {
-        val (code, j) = post("/api/player/register", auth().put("model", model))
+        // con la versione («tv x.y.z premium») il pannello riconosce Kairos Premium anche all'apertura: senza, il nome
+        // «KairosTV/» nell'user agent la faceva passare per Kairos TV e arrivavano le impostazioni imposte di Kairos TV
+        val (code, j) = post("/api/player/register", auth().put("model", model).put("ver", ver))
         if (j == null) throw Err("Il server ha risposto con una pagina non valida (HTTP $code)")
         if (code == 403 && j.optString("status") == "locked") return State.locked().also { state = it; Store.stateJson = "" }
         if (code == 429) throw Err("Troppe richieste: riprovo tra poco")
