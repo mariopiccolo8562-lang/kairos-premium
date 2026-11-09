@@ -66,6 +66,8 @@ android {
 dependencies {
     // poche librerie, tutte compatibili con Android 5.1
     implementation("androidx.core:core:1.13.1")
+    // test JVM (src/test): logica pura, es. adulti fuori dalla Home (AdultFilterTest, HomeCfgTest)
+    testImplementation("junit:junit:4.13.2")
     implementation("androidx.recyclerview:recyclerview:1.3.2")
     implementation("androidx.media3:media3-exoplayer:1.4.1")
     implementation("androidx.media3:media3-exoplayer-hls:1.4.1")
