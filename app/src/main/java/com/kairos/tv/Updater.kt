@@ -23,8 +23,8 @@ import java.security.MessageDigest
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
- * Aggiornamento automatico: file degli aggiornamenti da store-k.download o dal pannello (/get/premium.json; riserva
- * kairos-premium.json delle release di GitHub, vedi [UpdFeed]) e APK dal link che c'è dentro, poi dalle basi successive.
+ * Aggiornamento automatico: file degli aggiornamenti da store-k.download (/get/premium.json) o dai domini di riserva,
+ * niente pannello né GitHub (vedi [UpdFeed]); APK dal link che c'è dentro, poi dalle altre basi.
  * Si controlla a ogni apertura dell'app (al massimo ogni 10 minuti) e ogni ora mentre resta aperta.
  * Aggiornamento in background (scelta del cliente o imposta dal pannello, acceso di serie): la versione nuova
  * si scarica e si verifica in silenzio (solo su Wi-Fi o cavo, mai durante la visione); quando è pronta l'app
@@ -192,12 +192,12 @@ object Updater {
 
     /**
      * scarica l'APK del link [url] del file degli aggiornamenti in [out] e lo verifica; se non riesce (rete, errore HTTP,
-     * file sbagliato) lo stesso APK dalle basi successive (/get/premium.apk) e alla fine dall'ultima release di GitHub, vedi
+     * file sbagliato) lo stesso APK dalle altre basi dei download (/get/premium.apk), vedi
      * [UpdFeed.apkUrls]. [progress] riceve 0-99; [bg] = scaricamento in background: se intanto è partita la visione, le basi
      * successive si provano al prossimo controllo ([Later]), la banda serve al video.
      */
     private fun fetch(url: String, out: File, progress: ((Int) -> Unit)?, bg: Boolean = false) {
-        val list = UpdFeed.apkUrls(url, BuildConfig.DL_BASE, "premium", BuildConfig.APK_URL_FALLBACK)
+        val list = UpdFeed.apkUrls(url, BuildConfig.DL_BASE, "premium", Panel.dlExtra())
         UpdFeed.firstOk(list, { it is Later }) { src ->
             if (bg && src != list.first() && App.top is PlayerActivity) throw Later()
             fetchOne(src, out, progress)
