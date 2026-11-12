@@ -504,12 +504,12 @@ class PlayerActivity : BaseActivity() {
             if (switchLighter(byLine = true)) { lastAction = "versione più leggera"; fixAt = now; return }
         }
         val ladder = if (live) when (problem) {
-            "freeze" -> listOf("reload", "soft", "alt", "lighter")
-            "stall" -> listOf("reload", "alt", "lighter")
-            else -> listOf("reload", "alt", "soft", "lighter")
+            "freeze" -> listOf("reload", "soft", "alt", "server", "lighter")
+            "stall" -> listOf("reload", "alt", "server", "lighter")
+            else -> listOf("reload", "alt", "server", "soft", "lighter")
         } else when (problem) {
-            "stall" -> listOf("reload", "reload")
-            else -> listOf("reload", "soft")
+            "stall" -> listOf("reload", "server", "reload")
+            else -> listOf("reload", "server", "soft")
         }
         // stesso problema tornato dopo l'ultima soluzione possibile: si ricomincia (una volta) dal primo passo
         if (fresh && step >= ladder.size) step = 0
@@ -551,6 +551,22 @@ class PlayerActivity : BaseActivity() {
             urlIdx = (urlIdx + 1) % urls.size
             startUrl()
             true
+        }
+        "server" -> {
+            val r = baseRow ?: row ?: return false
+            val playlist = K.pl(r.s("pl")) ?: return false
+            val oldOrigin = playlist.origin()
+            val switched = if (oldOrigin.isNotEmpty() && (live || vodUrl.startsWith(oldOrigin))) Portals.next(playlist) else null
+            if (switched == null) false else {
+                if (live) {
+                    urls = Play.liveUrls(r)
+                    urlIdx = urlIdx.coerceIn(0, (urls.size - 1).coerceAtLeast(0))
+                } else vodUrl = switched.second + vodUrl.substring(switched.first.length)
+                lastAction = "server di riserva"
+                notice("Passo a un altro server…")
+                startUrl(if (live) null else player?.currentPosition)
+                true
+            }
         }
         "lighter" -> if (switchLighter(byLine = problem == "stall")) { lastAction = "versione più leggera"; true } else false
         else -> false
