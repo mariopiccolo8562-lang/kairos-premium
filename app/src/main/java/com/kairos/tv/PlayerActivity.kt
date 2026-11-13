@@ -398,7 +398,7 @@ class PlayerActivity : BaseActivity() {
                 return
             }
             // 4000-4999 = errori del decoder (lì serve la decodifica software), il resto è rete o formato
-            recover("error", error.errorCodeName.removePrefix("ERROR_CODE_").lowercase(Locale.ROOT), decoderError = error.errorCode in 4000..4999)
+            recover("error", error.errorCodeName.removePrefix("ERROR_CODE_").lowercase(Locale.ROOT) + httpSuffix(error), decoderError = error.errorCode in 4000..4999)
         }
     }
 
@@ -1177,4 +1177,15 @@ class PlayerActivity : BaseActivity() {
         }
         return super.onTouchEvent(event)
     }
+}
+
+/** codice HTTP del server dietro l'errore del lettore (« · HTTP 404»), vuoto se non c'è: nelle segnalazioni
+    si vede subito se è la linea (401/403), il contenuto che non esiste (404) o il server (5xx) */
+internal fun httpSuffix(e: Throwable?): String {
+    var c = e; var n = 0
+    while (c != null && n++ < 8) {
+        if (c is androidx.media3.datasource.HttpDataSource.InvalidResponseCodeException) return " · HTTP ${c.responseCode}"
+        c = c.cause
+    }
+    return ""
 }
