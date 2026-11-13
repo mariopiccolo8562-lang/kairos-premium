@@ -227,7 +227,7 @@ object Panel {
             .put("state", w?.state ?: "idle").put("title", w?.title ?: "").put("ch", w?.ch ?: "").put("chId", w?.chId ?: "")
             .put("group", w?.group ?: "").put("pl", w?.pl ?: "").put("prof", K.profile()?.name ?: "")
             .put("ver", ver).put("ui", "").put("model", model).put("screen", screen.take(20))
-            .put("net", JSONObject().put("type", Net.type()).apply { if (Net.type() == "wifi") Net.rssi().takeIf { it != 0 }?.let { put("rssi", it) } })
+            .put("net", JSONObject().put("type", Net.type()).apply { if (Net.type() == "wifi") Net.rssi().takeIf { it != 0 }?.let { put("rssi", it) }; NetMem.lineCls().takeIf { it.isNotEmpty() }?.let { put("line", it) }; NetMem.bwMbps().takeIf { it > 0 }?.let { put("bw", it) } })
             .put("vpn", if (vpnOn) "on" else "off")
             .put("sdns", if (Remote.sdns) (if (vpnOn) "vpn" else DnsShield.state) else "") // DNS cifrato: on, asking, denied, error, other, off; vpn = già nel tunnel
             .put("vis", vis)

@@ -182,5 +182,8 @@ object NetMem {
     /** scorta richiesta dopo un blocco: cresce con i blocchi recenti (2,5 s → 8 s) */
     fun rebufferMs(): Int = (2_500 + recentStalls() * 1_500).coerceAtMost(8_000)
 
+    /** banda misurata (Mbps, 0 = ignota) e classe della linea per «Online ora» del pannello (13 novembre 2026) */
+    fun bwMbps(): Double { load(); return if (bw > 0) Math.round(bw / 100_000.0) / 10.0 else 0.0 }
+    fun lineCls(): String { load(); return when { bw in 1 until 4_000_000L || recentStalls() >= 2 -> "weak"; bw >= 15_000_000L && recentStalls() == 0 -> "good"; bw > 0 -> "normal"; else -> "" } }
     fun initialBitrate(lite: Boolean): Long { load(); return if (bw > 0) (bw * 0.8).toLong() else if (lite) 2_500_000L else 5_000_000L }
 }
