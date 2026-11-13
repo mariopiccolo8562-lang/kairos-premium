@@ -18,8 +18,82 @@ abstract class BaseActivity : Activity() {
     private val clockTick = object : Runnable {
         override fun run() {
             clockView?.text = Ui.hm(System.currentTimeMillis())
+            shieldRefresh()
             App.main.postDelayed(this, 20_000)
         }
+    }
+    private var shieldView: ImageView? = null
+    private var dnsView: ImageView? = null
+
+    /**
+     * Lucchetto «DNS» accanto allo scudo (13 novembre 2026): c'è quando il fornitore ha acceso il DNS cifrato dal pannello.
+     * Colori e frasi in [DnsBadge]. Al tocco dice lo stato; dopo un rifiuto o un errore riprova.
+     */
+    fun dnsBadge(v: ImageView?) {
+        dnsView = v ?: return
+        v.setOnClickListener { dnsTap() }
+        dnsRefresh()
+    }
+    /** stato del DNS cifrato da mostrare ("" = il fornitore non lo ha acceso: niente lucchetto) */
+    fun dnsState(): String = DnsBadge.state(Remote.sdns && Panel.state?.active == true, KxVpn.state == "on", DnsShield.state)
+    fun dnsRefresh() {
+        onDnsChanged()
+        val v = dnsView ?: return
+        val st = dnsState()
+        if (st.isEmpty()) { v.visibility = View.GONE; return }
+        v.visibility = View.VISIBLE
+        v.isFocusable = true; v.isClickable = true
+        v.imageTintList = android.content.res.ColorStateList.valueOf(DnsBadge.color(st))
+        v.alpha = if (st == "off") 0.7f else 1f
+        v.contentDescription = DnsBadge.text(st)
+    }
+    fun dnsTap() {
+        val st = dnsState()
+        if (st.isEmpty()) return
+        if (!DnsBadge.canRetry(st)) { Ui.toast(DnsBadge.text(st)); return }
+        DnsShield.retry()
+        Vpns.apply(this)
+        Ui.toast(if (st == "denied") "DNS cifrato: riprovo. Conferma la richiesta di Android" else "DNS cifrato: riprovo ad attivarlo…")
+        for (ms in longArrayOf(800, 2_000, 4_000, 8_000)) App.main.postDelayed({ if (!isFinishing) dnsRefresh() }, ms)
+    }
+    /** lo stato del DNS cifrato può essere cambiato: le Home che lo disegnano a modo loro si aggiornano qui */
+    open fun onDnsChanged() {}
+
+    /** Scudo VPN nella barra in alto. Compare solo se il fornitore lo ha permesso dal pannello: VPN «Consentita» + permesso
+     *  «Accendere/spegnere la VPN». Con «Sempre attiva» è un semplice indicatore (acceso, non si tocca); altrimenti è nascosto. */
+    fun vpnShield(v: ImageView?) {
+        shieldView = v ?: return
+        v.setOnClickListener { vpnToggle() }
+        shieldRefresh()
+    }
+    fun shieldRefresh() {
+        dnsRefresh()
+        val v = shieldView ?: return
+        val s = Panel.state
+        val ok = s != null && s.active && s.vpnConf.isNotEmpty()
+        val can = ok && s!!.vpnMode == "allow" && s.perm("vpn")
+        val forced = ok && s!!.vpnMode == "force"
+        // la VPN la gestisce il fornitore (sempre attiva, consentita senza permesso, spenta): lo scudo c'è lo stesso e si può
+        // premere, per leggere «VPN gestita dal fornitore» (voce «shield» del pannello)
+        val managed = s != null && s.active && s.vpnShield
+        if (!can && !forced && !managed) { v.visibility = View.GONE; return }
+        v.visibility = View.VISIBLE
+        v.isFocusable = true; v.isClickable = true
+        val st = KxVpn.state
+        val on = st == "on" || (forced && KxVpn.active())
+        v.imageTintList = android.content.res.ColorStateList.valueOf(if (on) 0xFF2EE59D.toInt() else if (st == "connecting") 0xFFF5B041.toInt() else 0xCCFFFFFF.toInt())
+        v.alpha = if (on || st == "connecting") 1f else 0.7f
+        v.contentDescription = if (!can) "VPN gestita dal fornitore" else if (on) "VPN attiva: premi per spegnerla" else "VPN spenta: premi per accenderla"
+    }
+    private fun vpnToggle() {
+        val s = Panel.state ?: return
+        if (!(s.active && s.vpnConf.isNotEmpty() && s.vpnMode == "allow" && s.perm("vpn"))) { Ui.toast("VPN gestita dal fornitore"); return }
+        Store.vpnUser = !Store.vpnUser
+        if (Store.vpnUser) Vpns.retry()
+        Ui.toast(if (Store.vpnUser) "Attivo la VPN…" else "VPN spenta")
+        Vpns.apply(this)
+        shieldRefresh()
+        for (ms in longArrayOf(800, 2_000, 4_000, 8_000)) App.main.postDelayed({ if (!isFinishing) shieldRefresh() }, ms)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -38,6 +112,7 @@ abstract class BaseActivity : Activity() {
             Vpns.apply(this)
         }
         if (clockView != null) { App.main.removeCallbacks(clockTick); clockTick.run() }
+        shieldRefresh()
         Updater.offer(this) // versione nuova trovata mentre si guardava un canale: la si propone qui
     }
 

@@ -90,6 +90,8 @@ open class BrowseActivity : BaseActivity() {
 
         tabs()
         findViewById<View>(R.id.search).setOnClickListener { open(SearchActivity::class.java) }
+        vpnShield(findViewById(R.id.vpnShield))
+        dnsBadge(findViewById(R.id.dnsBadge))
         val av = findViewById<TextView>(R.id.avatar)
         av.setOnClickListener { open(SettingsActivity::class.java) }
         av.setOnFocusChangeListener { v, has -> (v.background as? android.graphics.drawable.GradientDrawable)?.setStroke(if (has) Ui.dp(this, 3) else 0, Color.WHITE) }
@@ -167,6 +169,7 @@ open class BrowseActivity : BaseActivity() {
     private fun bgDiv(): Int = if (App.max) 4 else if (App.lite) 3 else 2
 
     override fun onStateChanged() {
+        shieldRefresh() // scudo e lucchetto seguono subito il pannello
         fillAccount()
         if (sig() != loadedSig) build()
     }

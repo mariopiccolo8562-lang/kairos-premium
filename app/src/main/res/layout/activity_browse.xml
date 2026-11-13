@@ -56,6 +56,22 @@
             android:textColor="@color/text2"
             android:textSize="@dimen/text_l"
             android:textStyle="bold" />
+        <!-- scudo della VPN e lucchetto del DNS cifrato (13 novembre 2026): come nelle altre app Kairos -->
+        <ImageButton
+            android:id="@+id/vpnShield"
+            style="@style/IconBtn"
+            android:layout_marginRight="10dp"
+            android:contentDescription="VPN"
+            android:src="@drawable/ic_shield"
+            android:visibility="gone" />
+        <ImageButton
+            android:id="@+id/dnsBadge"
+            style="@style/IconBtn"
+            android:layout_marginRight="10dp"
+            android:contentDescription="DNS cifrato"
+            android:padding="9dp"
+            android:src="@drawable/ic_dns_lock"
+            android:visibility="gone" />
         <ImageButton
             android:id="@+id/search"
             style="@style/IconBtn"
